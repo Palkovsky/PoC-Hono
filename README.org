@@ -1,0 +1,11 @@
+* Running
+  #+begin_src bash
+  vagrant up
+  #+end_src
+* Dashboard
+  #+begin_src bash
+  vagrant ssh kube-master -c "kubectl proxy --address=0.0.0.0 --accept-hosts='^*$'"
+  #+end_src
+  #+begin_src 
+http://192.168.10.10:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/
+  #+end_src
