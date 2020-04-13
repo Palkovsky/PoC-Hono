@@ -28,4 +28,6 @@ apt-get update -y && \
     systemctl start kubelet && \
     # ssh
     sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
-    systemctl reload sshd
+    systemctl reload sshd && \
+    # NFS utils
+    apt-get install -y nfs-common

@@ -37,9 +37,11 @@ metadata:
   name: kubernetes-dashboard
   namespace: kubernetes-dashboard
 spec:
+  type: NodePort
   ports:
     - port: 443
       targetPort: 8443
+      nodePort: 31000
   selector:
     k8s-app: kubernetes-dashboard
 
@@ -116,7 +118,7 @@ rules:
   - apiGroups: [""]
     resources: ["services/proxy"]
     resourceNames: ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]
-    verbs: ["get"]
+    verbs: ["get", "update", "delete"]
 
 ---
 

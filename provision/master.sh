@@ -13,7 +13,6 @@ kubeadm config images pull && \
     # install helm
     curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | /bin/bash && \
     sudo -u vagrant bash -s <<'EOF'
-kubectl create -f /vagrant/yamls/kube-flannel.yaml
+kubectl create -f /vagrant/yamls/kube-flannel.yaml && \
 kubectl apply -f /vagrant/yamls/kube-dashboard.yaml
 EOF
-

@@ -1,0 +1,1085 @@
+#
+# Copyright (c) 2019, 2020 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Eclipse Public License 2.0 which is available at
+# http://www.eclipse.org/legal/epl-2.0
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+
+# Default values for eclipse-hono.
+# Declare variables to be passed into your templates.
+
+amqpMessagingNetworkExample:
+  # enabled indicates whether the example AMQP Messaging Network
+  # consisting of a single Dispatch Router and Broker should be
+  # deployed and used. By default an internal Broker is deployed.
+  # As alternative an external Broker can be configured as well.
+  enabled: true
+
+  # dispatchRouter contains properties for configuring the QPid Dispatch Router
+  dispatchRouter:
+    # imageName contains the name (including tag) of the container image
+    # to use for the example AQMP Messaging Network's Dispatch Router.
+    imageName: quay.io/interconnectedcloud/qdrouterd:1.10.0
+    # certFile contains the absolute path to a PEM file containing
+    # the X.509 certificate that the router should use for authenticating
+    # to clients
+    certFile: "/etc/hono/qdrouter-cert.pem"
+    # keyFile contains the absolute path to a PEM file containing
+    # the private key that the router should use for authenticating
+    # to clients
+    keyFile: "/etc/hono/qdrouter-key.pem"
+    # trustStore contains the absolute path to a PEM file containing
+    # the X.509 certificates that the router should use as trust anchors
+    # when authentitcating clients connecting to the router in a TLS
+    # handshake
+    trustStore: "/etc/hono/trusted-certs.pem"
+    # serverTrustStore contains the absolute path to a PEM file containing
+    # the X.509 certificates that the router should use as trust anchors
+    # when authentitcating to servers as part of a TLS handshake
+    serverTrustStore: "/etc/hono/trusted-certs.pem"
+    # uidFormat contains the format string to use for extracting the user ID from
+    # the subject DN of certificates that clients use for authenticating to the router's
+    # "internal" listener.
+    # See http://qpid.apache.org/releases/qpid-dispatch-1.10.0/man/qdrouterd.conf.html
+    # for details regarding the syntax.
+    # The default value ("ou") extracts the Organization ("O") and the Org Unit ("OU")
+    # and concatenates them using a semicolon, e.g. "Eclipse IoT;Hono"
+    uidFormat: "ou"
+    # adapterUids contains a comma separated list of uids of protocol adapters that authenticate
+    # by means of a client certificate.
+    # The default value ("Eclipse IoT;Hono") includes all adapters that authenticate with their
+    # demo certificate.
+    adapterUids: "Eclipse IoT;Hono"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+    # resources contains the container's requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "64Mi"
+      limits:
+        cpu: "1"
+        memory: "256Mi"
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # router's container filesystem. The files from the secret(s) can
+    # then be used in the router configuration, e.g. for using custom key material and certificates.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the router has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+  # AMQP Messaging Network Broker configuration.
+  broker:
+    # saslUsername contains the username that the Dispatch Router should use
+    # for authenticating to the broker
+    saslUsername: "artemis"
+    # saslPassword contains the password that the Dispatch Router should use
+    # for authenticating to the broker
+    saslPassword: "artemis"
+    # port contains the port that the Dispatch Router should use
+    # for connecting to the broker
+    port: 5671
+    # artemis contains configuration properties for the example Apache ActiveMQ Artemis broker
+    artemis:
+      # imageName contains the name (including tag) of the container
+      # image to use for the example AMQP Messaging Network Broker
+      imageName: quay.io/enmasse/artemis-base:2.10.1
+      # resources contains the container's 'requests and limits for CPU and memory
+      # as defined by the Kubernetes API.
+      # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+      # for a description of the properties' semantics.
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "1"
+          memory: "512Mi"
+
+      # extraSecretMounts describes additional secrets that should be mounted into the
+      # Artemis container's filesystem. The files from the secret(s) can
+      # then be used in the Artemis configuration, e.g. for using custom key material and certificates.
+      # The secrets are expected to exist in the same Kubernetes namespace
+      # as the one that the router has been deployed to.
+      extraSecretMounts: {}
+      #  passwords:
+      #    secretName: "my-passwords"
+      #    mountPath: "/etc/pwd"
+      #  other:
+      #    secretName: "other-stuff"
+      #    mountPath: "/etc/other"
+
+    # servicebus contains configuration properties for the Azure ServiceBus instance that
+    # should be used instead of the example Artemis broker.
+    servicebus:
+      # host contains the FQDN of the Azure ServiceBus endpoint to connect to.
+      # If this property is set then the example Artemis broker will not be deployed
+      # and the Dispatch Router will be configured to connect to the ServiceBus.
+      host:
+
+dataGridExample:
+  # enabled indicates whether the example data grid
+  # should be deployed and used.
+  # The default value of this property is false which is consistent with
+  # the default value (false) of the "deviceConnectionService.enabled" property,
+  # resulting in the in-memory implementation of the Device Connection
+  # service provided by the example device registry being used by default.
+  enabled: false
+  # imageName contains the name (including tag)
+  # of the container image to use for the example data grid.
+  imageName: jboss/infinispan-server:9.4.11.Final
+  # resources contains the container's 'requests and limits for CPU and memory
+  # as defined by the Kubernetes API.
+  # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  # for a description of the properties' semantics.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  # authUsername contains the name of the user that is authorized to connect to the example data grid.
+  authUsername: "hono"
+  # authPassword contains the secret of the user that is authorized to connect to the example data grid
+  authPassword: "hono-secret"
+
+# dataGridSpec contains properties for configuring the Infinispan Hotrod connection
+# to the existing data grid (i.e. not the example grid) that should be used for storing
+# the device connection data.
+# This property MUST be set if "deviceConnectionService.enabled" is set to true
+# and "dataGridExample.enabled" is set to false (the default).
+# Please refer to https://docs.jboss.org/infinispan/9.4/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description
+# for a list of configuration properties.
+dataGridSpec:
+  # serverList contains the hostname:port of the data grid node(s)
+  # This property only needs to be set when using an existing data grid other than the
+  # example grid.
+#  serverList: my-grid.example.com:11222
+  # authServerName contains the name that Hotrod clients need to use for establishing a
+  # connection to the data grid.
+#  authServerName:
+  # authUsername contains the name of the user that is authorized to connect to the data grid.
+#  authUsername:
+  # authPassword contains the secret of the user that is authorized to connect to the data grid
+#  authPassword:
+
+jaegerBackendExample:
+
+  # enabled indicates whether the example Jaeger all-in-one
+  # back end should be deployed and used.
+  enabled: false
+  # allInOneImage contains the name (including tag)
+  # of the container image to use for the example Jaeger back end.
+  allInOneImage: jaegertracing/all-in-one:1.17
+  # resources contains the container's 'requests and limits for CPU and memory
+  # as defined by the Kubernetes API.
+  # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  # for a description of the properties' semantics.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "512Mi"
+  svc:
+    annotations: {}
+    loadBalancerIP:
+
+# jaegerAgentImage contains the name (including tag)
+# of the container image to use for the Jaeger Agent sidecar deployed
+# with Hono's components.
+jaegerAgentImage: jaegertracing/jaeger-agent:1.17
+# jaegerAgentConf contains environment variables for configuring the Jaeger Agent sidecar container
+# that is deployed with each of Hono's components.
+# The Jaeger Agent sidecar container is deployed with standard properties if
+# "jaegerBackendExample.enabled" is set to true.
+# Otherwise the sidecar container is deployed using the environment variables contained
+# in this property (if not nil).
+# Please refer to https://www.jaegertracing.io/docs/1.17/cli/ for syntax and semantics
+# of environment variables.
+jaegerAgentConf:
+#  REPORTER_GRPC_HOST_PORT: my-jaeger-collector:14250
+#  REPORTER_GRPC_DISCOVERY_MIN_PEERS: 1
+
+# defaultJavaOptions contains options to pass to the JVM when starting
+# up Hono's containers
+defaultJavaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+
+# the port that the Hono components' Prometheus scraping endpoint is exposed on
+monitoring:
+  prometheus:
+    port: 8088
+
+# healthCheckPort is the port that the Hono components bind their health check
+# server to.
+healthCheckPort: 8088
+
+# platform indicates the type of container orchestration platform we are deploying to.
+# Supported values are:
+# - openshift
+# - kubernetes
+#
+# When setting to "openshift", Route resources will also be deployed.
+platform: kubernetes
+
+# useLoadBalancer indicates whether services should be deployed using the
+# "LoadBalancer" type (true) or the "NodePort" type (false).
+# This property will be ignored when deploying to platform "openshift".
+useLoadBalancer: true
+
+# Configuration properties for protocol adapters.
+adapters:
+
+  # externalAdaptersEnabled indicates whether protocol adapters that
+  # run outside of the kubernetes cluster should be allowed to connect to
+  # the Dispatch Router and the example device registry's service endpoints.
+  # The default setting is 'false' which prevents access from outside of the
+  # cluster.
+  # Setting this property to 'true' allows external adapters to connect to
+  # the Dispatch Router's 'internal' endpoint and the Device Registry's
+  # service endpoints via AMQPS, i.e. AMQP over TLS.
+  # The Dispatch Router's 'internal' endoint listens on port 15673 and requires
+  # adapters to authenticate using SASL EXTERNAL, i.e. an adapter needs to provide
+  # a client certificate that has been signed by one of the CA certs contained in
+  # the router's trust store.
+  # When opening the AMQP connection to the router, the adapter needs to indicate
+  # the 'hono-internal' virtual host name in its AMQP 1.0 'open' frame.
+  # The example Device Registry's AMQPS endpoint requires adapters to authenticate
+  # using SASL PLAIN, i.e. an adapter needs to provide a username and password which
+  # can be verified by the Auth Server component.
+  externalAdaptersEnabled: false
+
+  # amqpMessagingNetworkSpec contains Hono client properties used by all protocol
+  # adapters for connecting to the AMQP Messaging Network to forward downstream messages to.
+  # This property MUST be set if "amqpMessagingNetworkDeployExample" is set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  amqpMessagingNetworkSpec:
+  #  host: my-amqp-host
+  #  port: 5671
+  #  trustStorePath: /etc/conf/amqp-trust-store.pem
+  #  credentialsPath: /etc/conf/amqp-credentials.properties
+
+  # commandAndControlSpec contains Hono client properties used by all protocol
+  # adapters for connecting to the AMQP Messaging Network which is used by applications
+  # to send commands to devices.
+  # This property MUST be set if "amqpMessagingNetworkDeployExample" is set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  commandAndControlSpec:
+
+  # tenantSpec contains Hono client properties used by all protocol adapters for
+  # connecting to the Tenant service.
+  # This property MUST be set if "deviceRegistryExample.enabled" is set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  tenantSpec:
+
+  # deviceRegistrationSpec contains Hono client properties used by all protocol adapters for
+  # connecting to the Device Registration service.
+  # This property MUST be set if "deviceRegistryExample.enabled" is set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  deviceRegistrationSpec:
+
+  # credentialsSpec contains Hono client properties used by all protocol adapters for
+  # connecting to the Credentials service.
+  # This property MUST be set if "deviceRegistryExample.enabled" is set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  credentialsSpec:
+
+  # deviceConnectionSpec contains Hono client properties used by all protocol adapters for
+  # connecting to the Device Connection service.
+  # This property MUST be set if "deviceRegistryExample.enabled" and
+  # "deviceConnectionService.enabled" and "dataGridExample.enabled" are all set to false.
+  # Please refer to https://www.eclipse.org/hono/docs/admin-guide/hono-client-configuration/
+  # for a description of supported properties.
+  deviceConnectionSpec:
+
+  # tenantIdleTimeout contains the amount of time of inactivity after
+  # which protocol adapters close tenant specific links to services they
+  # interact with.
+  # Please refer to the Spring Boot documentation for the supported syntax:
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-conversion-duration
+  defaultTenantIdleTimeout: "1h"
+
+  amqp:
+    # enabled indicates if Hono's AMQP 1.0 adapter should be deployed.
+    enabled: true
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the AMQP adapter
+    imageName: index.docker.io/eclipse/hono-adapter-amqp-vertx:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "300Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties as defined in
+    # https://www.eclipse.org/hono/docs/admin-guide/amqp-adapter-config/
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # amqp contains configuration properties for the adapter's
+      # exposed AMQP endpoints.
+      # If not set, the adapter by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      amqp:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+  coap:
+    # enabled indicates if Hono's (experimental) CoAP adapter should be deployed.
+    enabled: false
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the CoAP adapter
+    imageName: index.docker.io/eclipse/hono-adapter-coap-vertx:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "256Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+  http:
+    # enabled indicates if Hono's HTTP adapter should be deployed.
+    enabled: true
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the HTTP adapter
+    imageName: index.docker.io/eclipse/hono-adapter-http-vertx:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "300Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties as defined in
+    # https://www.eclipse.org/hono/docs/admin-guide/http-adapter-config/
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # http contains configuration properties for the adapter's
+      # exposed HTTP endpoints.
+      # If not set, the adapter by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      http:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+  kura:
+    # enabled indicates if Hono's (deprecated) Kura adapter should be deployed.
+    enabled: false
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the Kura adapter
+    imageName: index.docker.io/eclipse/hono-adapter-kura:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "300Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties as defined in
+    # https://www.eclipse.org/hono/docs/admin-guide/kura-adapter-config/
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # http contains configuration properties for the adapter's
+      # exposed MQTT endpoints.
+      # If not set, the adapter by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      kura:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+  lora:
+    # enabled indicates if Hono's Lora adapter should be deployed.
+    enabled: false
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the LoRa adapter
+    imageName: index.docker.io/eclipse/hono-adapter-lora-vertx:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "300Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # lora contains configuration properties for the adapter's
+      # exposed HTTP endpoints.
+      # If not set, the adapter by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      lora:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+  mqtt:
+    # enabled indicates if Hono's MQTTP 3.1.1 adapter should be deployed.
+    enabled: true
+    # imageName contains the name (including registry and tag)
+    # of the container image to use for the MQTT adapter
+    imageName: index.docker.io/eclipse/hono-adapter-mqtt-vertx:1.2.1
+    # javaOptions contains options to pass to the JVM when starting
+    # up the service
+    javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+    # resources contains the container's 'requests and limits for CPU and memory
+    # as defined by the Kubernetes API.
+    # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+    # for a description of the properties' semantics.
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "300Mi"
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+
+    svc:
+      annotations: {}
+      loadBalancerIP:
+
+    # extraSecretMounts describes additional secrets that should be mounted into the
+    # adapter's container filesystem. The files from the secret(s) can
+    # then be used in e.g. the service client specs.
+    # The secrets are expected to exist in the same Kubernetes namespace
+    # as the one that the adapter has been deployed to.
+    extraSecretMounts: {}
+    #  passwords:
+    #    secretName: "my-passwords"
+    #    mountPath: "/etc/pwd"
+    #  other:
+    #    secretName: "other-stuff"
+    #    mountPath: "/etc/other"
+
+    # hono contains the adapter's configuration properties as defined in
+    # https://www.eclipse.org/hono/docs/admin-guide/mqtt-adapter-config/
+    hono:
+      app:
+        # maxInstances defines the number of adapter Verticle instances to deploy
+        # to the vert.x runtime during start-up.
+        maxInstances: 1
+
+      # http contains configuration properties for the adapter's
+      # exposed MQTT endpoints.
+      # If not set, the adapter by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      mqtt:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # healthCheck contains configuration properties for the adapter's
+      # health check server as defined by
+      # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+      # If not set, a TLS secured health check server is configured listening on
+      # all network interfaces on port 8088 using the adapter's
+      # example key and cert.'
+      healthCheck:
+      #  bindAddress: 0.0.0.0
+      #  port: 12000
+      #  keyPath: "/etc/config/key.pem"
+      #  certPath: "/etc/config/cert.pem"
+
+
+# authServer contains configuration properties for the Auth Server component.
+authServer:
+
+  # imageName contains the name (including registry and tag)
+  # of the container image to use for the Auth Server
+  imageName: index.docker.io/eclipse/hono-service-auth:1.2.1
+  # javaOptions contains options to pass to the JVM when starting
+  # up the service
+  javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+  # resources contains the container's 'requests and limits for CPU and memory
+  # as defined by the Kubernetes API.
+  # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  # for a description of the properties' semantics.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "196Mi"
+    limits:
+      cpu: "1"
+      memory: "256Mi"
+
+  # extraSecretMounts describes additional secrets that should be mounted into the
+  # Auth Server's' container filesystem. The files from the secret(s) can
+  # then be used in e.g. the configuration of the server's exposed ports.
+  # The secrets are expected to exist in the same Kubernetes namespace
+  # as the one that the server has been deployed to.
+  extraSecretMounts: {}
+  #  passwords:
+  #    secretName: "my-passwords"
+  #    mountPath: "/etc/pwd"
+  #  other:
+  #    secretName: "other-stuff"
+  #    mountPath: "/etc/other"
+
+  # hono contains the Auth Server's configuration properties as defined in
+  # https://www.eclipse.org/hono/docs/admin-guide/auth-server-config/
+  hono:
+    app:
+      # maxInstances defines the number of adapter Verticle instances to deploy
+      # to the vert.x runtime during start-up.
+      maxInstances: 1
+    auth:
+      # svc contains configuration properties for the server
+      svc:
+        permissionsPath: "file:///etc/hono/permissions.json"
+        supportedSaslMechanisms: "PLAIN"
+        signing:
+          # tokenExpiration contains the number of seconds after which tokens issued
+          # by the Auth server will expire.
+          tokenExpiration: 3600
+      # amqp contains configuration properties for the server's
+      # exposed AMQP endpoints.
+      # If not set, the sever by default exposes the secure and insecure ports
+      # using an example key and certificate.
+      amqp:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+    # healthCheck contains configuration properties for the service's
+    # health check server as defined by
+    # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+    # If not set, a TLS secured health check server is configured listening on
+    # all network interfaces on port 8088 using the service's
+    # example key and cert.'
+    healthCheck:
+    #  bindAddress: 0.0.0.0
+    #  port: 12000
+    #  keyPath: "/etc/config/key.pem"
+    #  certPath: "/etc/config/cert.pem"
+
+
+# deviceRegistryExample contains configuration properties for the
+# example Device Registry.
+deviceRegistryExample:
+
+  # enabled indicates whether the example Device Registry
+  # should be deployed and used.
+  # If this property is set to false, then the protocol adapters need to be
+  # explicitly configured for connecting to the Tenant, Device Registration,
+  # Credentials and Device Connection services using properties
+  # - "adapters.tenantSpec"
+  # - "adapters.deviceRegistrationSpec"
+  # - "adapters.credentialsSpec"
+  # - "adapters.deviceConnectionSpec"
+  enabled: true
+
+  # imageName contains the name (including registry and tag)
+  # of the container image to use for the example Device Registry
+  imageName: index.docker.io/eclipse/hono-service-device-registry-file:1.2.1
+  # javaOptions contains options to pass to the JVM when starting
+  # up the service
+  javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+  # resources contains the container's 'requests and limits for CPU and memory
+  # as defined by the Kubernetes API.
+  # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  # for a description of the properties' semantics.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "300Mi"
+    limits:
+      cpu: "1"
+      memory: "300Mi"
+
+  svc:
+    annotations: {}
+    loadBalancerIP:
+
+  # extraSecretMounts describes additional secrets that should be mounted into the
+  # Device Registry's' container filesystem. The files from the secret(s) can
+  # then be used in e.g. the configuration of the server's exposed ports.
+  # The secrets are expected to exist in the same Kubernetes namespace
+  # as the one that the server has been deployed to.
+  extraSecretMounts: {}
+  #  tls:
+  #    secretName: "key-material"
+  #    mountPath: "/etc/tls"
+  #  data:
+  #    secretName: "example-data"
+  #    mountPath: "/etc/data"
+
+  # data defines the location of files containing data
+  # that should be used to initialize the example Device Registry during startup.
+  data:
+    # volumeName contains the name of the service pod's volume that has been created for the
+    # secret containing the example data files.
+    # If not set, the files will be read from the volume created from the registry's default "conf" secret.
+    # Otherwise, the volume name needs to match the name used in the extraSecretMounts for the
+    # secret containing the data.
+    volumeName:
+    # tenantsFile indicates the name of the file that is used to initialize the
+    # Tenant service with example tenant data
+    tenantsFile: example-tenants.json
+    # devicesFile indicates the name of the file that is used to initialize the
+    # Device Registration service with example device data
+    devicesFile: example-device-identities.json
+    # credentialsFile indicates the name of the file that is used to initialize the
+    # Credentials service with example credentials
+    credentialsFile: example-credentials.json
+    # resetOnStartup indicates whether registration data should be reset to initial
+    # example data when the example Device Registry starts up
+    resetOnStartup: true
+
+  # storageClass indicates the name of the kubernetes StorageClass that
+  # should be used for the example registry's persistent volume claim.
+  # If not set, the cluster's default storage class is used.
+  storageClass:
+
+  # hono contains the Device Registry's configuration properties as defined in
+  # https://www.eclipse.org/hono/docs/admin-guide/device-registry-config/
+  hono:
+    # auth contains Hono client properties used by the example registry for
+    # connecting to the Authentication service.
+    # If not set, the registry by default uses the Auth Server component to
+    # authenticate clients.
+    auth:
+    registry:
+      # amqp contains configuration properties for the server's
+      # exposed AMQP endpoints.
+      # If not set, the registry by default exposes the secure port
+      # using an example key and certificate.
+      amqp:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # rest contains configuration properties for the server's
+      # exposed HTTP endpoints.
+      # If not set, the registry by default exposes the insecure and secure ports
+      # using an example key and certificate.
+      rest:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+    # healthCheck contains configuration properties for the service's
+    # health check server as defined by
+    # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+    # If not set, a TLS secured health check server is configured listening on
+    # all network interfaces on port 8088 using the service's
+    # example key and cert.'
+    healthCheck:
+    #  bindAddress: 0.0.0.0
+    #  port: 12000
+    #  keyPath: "/etc/config/key.pem"
+    #  certPath: "/etc/config/cert.pem"
+
+# deviceConnectionService contains configuration properties for the
+# Device Connection service.
+deviceConnectionService:
+
+  # enabled indicates if the data grid based Device Connection service implementation
+  # should be deployed and used.
+  # If set to false (the default) and "deviceRegistryExample.enabled" is set to true,
+  # the in-memory implementation that is part of the example Device Registry is used.
+  # If set to false (the default) and "deviceRegistryExample.enabled" is also set to false,
+  # then the "adapters.deviceConnectionSpec" is expected to contain the required
+  # Hono client config properties to connect to an already existing Device Connection service.
+  enabled: false
+
+  # imageName contains the name (including registry and tag)
+  # of the container image to use for the Device Connection service
+  imageName: index.docker.io/eclipse/hono-service-device-connection:1.2.1
+  # javaOptions contains options to pass to the JVM when starting
+  # up the service
+  javaOptions: -XX:MinRAMPercentage=80 -XX:MaxRAMPercentage=80
+  # resources contains the container's 'requests and limits for CPU and memory
+  # as defined by the Kubernetes API.
+  # Refer to https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
+  # for a description of the properties' semantics.
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "256Mi"
+
+  svc:
+    annotations: {}
+
+  # extraSecretMounts describes additional secrets that should be mounted into the
+  # service's' container filesystem. The files from the secret(s) can
+  # then be used in e.g. the configuration of the service's exposed ports.
+  # The secrets are expected to exist in the same Kubernetes namespace
+  # as the one that the service has been deployed to.
+  extraSecretMounts: {}
+  #  tls:
+  #    secretName: "key-material"
+  #    mountPath: "/etc/tls"
+
+  # hono contains the service's configuration properties as defined in
+  # https://www.eclipse.org/hono/docs/admin-guide/device-connection-config/
+  hono:
+    app:
+      # maxInstances defines the number of adapter Verticle instances to deploy
+      # to the vert.x runtime during start-up.
+      maxInstances: 1
+      startupTimeout: 180
+    # auth contains Hono client properties used by the service for
+    # connecting to the Authentication service.
+    # If not set, the service by default uses the Auth Server component to
+    # authenticate clients.
+    auth:
+    deviceConnection:
+      # amqp contains configuration properties for the server's
+      # exposed AMQP endpoints.
+      # If not set, the registry by default exposes the secure port
+      # using an example key and certificate.
+      amqp:
+      #  insecurePortEnabled: true
+      #  insecurePortBindAddress: "0.0.0.0"
+
+      # DEPRECATED use the dataGridSpec property instead
+      # remote contains properties for configuring the Infinispan Hotrod connection
+      # to the data grid that should be used for storing the device connection data.
+      # This property MUST be set if "deviceConnectionService.enabled" is set to true
+      # and "dataGridExample.enabled" is set to false (the default).
+      # Please refer to https://docs.jboss.org/infinispan/9.4/apidocs/org/infinispan/client/hotrod/configuration/package-summary.html#package.description
+      # for a list of configuration properties.
+      remote:
+      #  serverList: hono-data-grid:11222
+      #  authServerName: hono-data-grid
+      #  authUsername: hono
+      #  authPassword: hono-secret
+
+    # healthCheck contains configuration properties for the service's
+    # health check server as defined by
+    # https://www.eclipse.org/hono/docs/admin-guide/monitoring-tracing-config/#health-check-server-configuration
+    # If not set, a TLS secured health check server is configured listening on
+    # all network interfaces on port 8088 using the service's
+    # example key and cert.'
+    healthCheck:
+    #  bindAddress: 0.0.0.0
+    #  port: 12000
+    #  keyPath: "/etc/config/key.pem"
+    #  certPath: "/etc/config/cert.pem"
+
+prometheus:
+  # createInstance indicates whether a Prometheus server should be created
+  # using the Prometheus chart.
+  # Set this property to false if you want to use an already existing server
+  # instead. In that case, set the "name" and "port" properties to the
+  # existing server's host name and port.
+  createInstance: true
+  # host contains the host name of an existing Prometheus server.
+  # This property is used to configure a corresponding datasource in Grafana
+  # if createInstance is set to false.
+  host:
+  # post contains the port number of an existing Prometheus server.
+  # This property is used to configure a corresponding datasource in Grafana
+  # if createInstance is set to false.
+  port:
+
+  ## Define serviceAccount names for components. Defaults to component's fully qualified name.
+  ##
+  serviceAccounts:
+    alertmanager:
+      create: false
+      name:
+    kubeStateMetrics:
+      create: false
+      name:
+    nodeExporter:
+      create: false
+      name:
+    pushgateway:
+      create: false
+      name:
+    server:
+      create: true
+      name:
+
+  server:
+    configMapOverrideName: prometheus-config
+    global:
+      scrape_interval: 10s
+    service:
+      servicePort: 9090
+
+  alertmanager:
+    enabled: false
+
+  kubeStateMetrics:
+    enabled: false
+
+  nodeExporter:
+    enabled: false
+
+  pushgateway:
+    enabled: false
+
+grafana:
+  enabled: true
+  adminPassword: admin
+
+  # labels to be added to the Grafana Deployment
+  labels:
+    app.kubernetes.io/name: eclipse-hono
+    app.kubernetes.io/component: dashboard
+
+  # labels to be added to the Grafana Pod(s)
+  podLabels:
+    app.kubernetes.io/name: eclipse-hono
+    app.kubernetes.io/component: dashboard
+
+
+  ## Expose the grafana service to be accessed from outside the cluster (LoadBalancer service).
+  ## or access it from within the cluster (ClusterIP service). Set the service type and the port to serve it.
+  ## ref: http://kubernetes.io/docs/user-guide/services/
+  ##
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+    annotations: {}
+    labels:
+      app.kubernetes.io/name: eclipse-hono
+      app.kubernetes.io/component: dashboard
+
+  ## Sidecars that collect the configmaps with specified label and stores the included files them into the respective folders
+  ## Requires at least Grafana 5 to work and can't be used together with parameters dashboardProviders, datasources and dashboards
+  sidecar:
+    dashboards:
+      enabled: true
+      # label that the configmaps with dashboards are marked with
+      label: grafana_dashboard
+    datasources:
+      enabled: true
+      # label that the configmaps with datasources are marked with
+      label: grafana_datasource
+
+  rbac:
+    namespaced: true
+
