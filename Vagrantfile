@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
     master.vm.provision "shell", path: "provision/master.sh",
                         env: { "HOST_IP" => MASTER_IP, "POD_CIDR" => "10.244.0.0/16" }
     master.vm.provision "shell", path: "provision/dynamic-pvc.sh"
-    master.vm.provision "shell", path: "provision/prometheus.sh"
+    master.vm.provision "shell", path: "provision/hono.sh"
     master.vm.provider "virtualbox" do |v|
       v.memory = 8192
       v.cpus = 4
@@ -31,5 +31,5 @@ Vagrant.configure("2") do |config|
       end
     end
   end
-  
+
 end

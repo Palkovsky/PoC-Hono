@@ -1009,7 +1009,7 @@ prometheus:
       create: false
       name:
     kubeStateMetrics:
-      create: false
+      create: true
       name:
     nodeExporter:
       create: false
@@ -1027,12 +1027,15 @@ prometheus:
       scrape_interval: 10s
     service:
       servicePort: 9090
+      nodePort: 31001
+      type: NodePort
+
 
   alertmanager:
     enabled: false
 
   kubeStateMetrics:
-    enabled: false
+    enabled: true
 
   nodeExporter:
     enabled: false
@@ -1060,9 +1063,10 @@ grafana:
   ## ref: http://kubernetes.io/docs/user-guide/services/
   ##
   service:
-    type: ClusterIP
+    type: NodePort
     port: 3000
     targetPort: 3000
+    nodePort: 31002
     annotations: {}
     labels:
       app.kubernetes.io/name: eclipse-hono
