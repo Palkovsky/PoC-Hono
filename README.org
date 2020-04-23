@@ -6,16 +6,20 @@
   #+begin_src bash
   vagrant up
   #+end_src
-* Kubernetes dashboard
-  #+begin_src 
-https://kube-master:31000/
-  #+end_src
-* Prometheus dashboard
-  #+begin_src 
-http://kube-master:31001/
-  #+end_src
-* Grafana
-  #+begin_src 
-Credentials: admin/admin
-http://kube-master:31002/
-  #+end_src
+* Port mappings
+| VBox Internal |   LAN | Description     |
+|         31000 | 31000 | Kube Dashboard  |
+|         31001 | 31001 | Prometheus      |
+|         31002 | 31002 | Grafana         |
+|         30080 | 32000 | HTTP Adapter    |
+|         31883 | 32001 | MQTT Adapter    |
+|         32672 | 32002 | AMQP Adapter    |
+|         30672 | 33000 | Dispatch router |
+|         31080 | 33001 | Device registry |
+
+* Dispatch router
+  Applications connect here.
+* Device registry
+  This is where you create tenant and devices.
+* [HTTP|AMQP|MQTT] adapter
+  This is where you send [telemetry|event] data.
