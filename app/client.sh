@@ -5,11 +5,12 @@ cat << EOF
 Usage: ${0##*/} [-h SERVER=localhost] [-p PORT] [-t TENANT]
 
 Connect to MQTT dispatch router and start accepting messages from specified tenant.
-        -h SERVER    Service hostname
+        -s SERVER    Service hostname
         -p PORT      Service port
         -t TENANT    Tenant name
         -c           Command mode
         -d DEVICE_ID Device id for command execution
+        -h           Shows this help
 EOF
 }
 
@@ -21,13 +22,14 @@ PASSWD=verysecret
 PROFILE=receiver
 DEVICE_ID=0
 
-while getopts "h:p:t:u:d:c" opt; do
+while getopts "s:p:t:u:d:c" opt; do
     case "$opt" in
-        h) HOST=${OPTARG}       ;;
+        s) HOST=${OPTARG}       ;;
         p) PORT=${OPTARG}       ;;
         t) TENANT=${OPTARG}     ;;
         d) DEVICE_ID=${OPTARG}  ;;
         c) PROFILE=command      ;;
+        h) usage && exit 0      ;;
         *) usage && exit 1      ;;
     esac
 done
