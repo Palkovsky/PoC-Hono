@@ -2,7 +2,9 @@ import time
 import argparse
 import registry
 import threading
+
 import paho.mqtt.publish as publish
+import paho.mqtt.subscribe as subscribe
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MQTT device simulator.")
@@ -46,11 +48,7 @@ if __name__ == "__main__":
     factory(registry.mk_device)(args.tenant, args.device)
     factory(registry.set_passwd)(args.tenant, args.device, args.device, args.passwd)
 
-    def send_message(ty, sleep):
-        auth = {
-            "username": "%s@%s" % (args.device, args.tenant),
-            "password": args.passwd
-        }
+    def send_message(auth, ty, sleep):
         counter = 0
         while True:
             counter += 1
@@ -62,10 +60,28 @@ if __name__ == "__main__":
                 qos=1, auth=auth)
             print("Published '%s'" % payload)
 
+
+    auth = {
+        "username": "%s@%s" % (args.device, args.tenant),
+        "password": args.passwd
+    }
+    
     print("Starting publishing threads...")
     for _ in range(args.threads):
-        threading.Thread(target=send_message, daemon=True, args=("telemetry", args.telemetry_freq)).start()
-        threading.Thread(target=send_message, daemon=True, args=("event", args.event_freq)).start()
+        threading.Thread(target=send_message, daemon=True, args=(auth, "telemetry", args.telemetry_freq)).start()
+        threading.Thread(target=send_message, daemon=True, args=(auth, "event", args.event_freq)).start()
+
+    def on_message(mqttc, obj, msg):
+        payload = str(msg.payload)
+        print(payload)
+
+    # Receive messages from application
+    print("Subscribing to commands...")
+    subscribe.callback(
+        on_message,
+        "command///req/#",
+        hostname=args.mqtt_host, port=args.mqtt_port,
+        qos=1, auth=auth)
 
     while True:
         time.sleep(1)
