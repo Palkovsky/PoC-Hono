@@ -16,7 +16,6 @@
 |         32672 | 32002 | AMQP Adapter    |
 |         30672 | 33000 | Dispatch router |
 |         31080 | 33001 | Device registry |
-
 * Dispatch router
   Applications connect here.
 * Device registry
@@ -24,3 +23,4 @@
 * [HTTP|AMQP|MQTT] adapter
   This is where you send [telemetry|event] data.
   IoT Project
+
