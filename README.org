@@ -16,11 +16,29 @@
 |         32672 | 32002 | AMQP Adapter    |
 |         30672 | 33000 | Dispatch router |
 |         31080 | 33001 | Device registry |
-* Dispatch router
-  Applications connect here.
-* Device registry
-  This is where you create tenant and devices.
-* [HTTP|AMQP|MQTT] adapter
-  This is where you send [telemetry|event] data.
-  IoT Project
+* Components
+** Dispatch router
+  Data consumers(applications) connect to dispatch router.
+** Device registry
+  Exposes REST API for device/tenant/credentials managemnt.
+** [HTTP|AMQP|MQTT] adapter
+   Devices reveive/send data from/to adapters.
 
+* Recipes
+** Application
+*** Receiver mode
+  #+begin_src bash
+app/client.sh -h DISPATCH_ROUTER_HOSTNAME -p DISPATCH_ROUTER_PORT -t TENANT_NAME
+  #+end_src
+*** Command mode
+ #+begin_src bash
+app/client.sh -h DISPATCH_ROUTER_HOSTNAME -p DISPATCH_ROUTER_PORT -t TENANT_NAME -c -d DEVICE_NAME
+  #+end_src
+
+** Devices
+   #+begin_src bash
+python app/[mqtt|amqp|http]_device.py --help
+   #+end_src
+
+* Event vs. Telemetry
+  You can't send telemetry if there's no application connected to given tenant in the Device Registry.

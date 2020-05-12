@@ -39,16 +39,21 @@ if __name__ == "__main__":
                         default=1, type=int,
                         help="How many threads should be spawned for each message type.")
 
-    # Create device in case it doesn't exist
+    # Read some data from args.
     args = parser.parse_args()
-    factory = registry.mk_api_factory(args.registry_host, args.registry_port)
+    auth = {
+        "username": "%s@%s" % (args.device, args.tenant),
+        "password": args.passwd
+    }
 
+    # Create device in case it doesn't exist
+    factory = registry.mk_api_factory(args.registry_host, args.registry_port)
     print("Creating device %s@%s..." % (args.device, args.tenant))
     factory(registry.mk_tenant)(args.tenant)
     factory(registry.mk_device)(args.tenant, args.device)
     factory(registry.set_passwd)(args.tenant, args.device, args.device, args.passwd)
 
-    def send_message(auth, ty, sleep):
+    def send(ty, sleep, auth=auth):
         counter = 0
         while True:
             counter += 1
@@ -57,31 +62,28 @@ if __name__ == "__main__":
             publish.single(
                 ty, payload=payload,
                 hostname=args.mqtt_host, port=args.mqtt_port,
-                qos=1, auth=auth)
+                qos=1, auth=auth
+            )
             print("Published '%s'" % payload)
 
 
-    auth = {
-        "username": "%s@%s" % (args.device, args.tenant),
-        "password": args.passwd
-    }
-    
     print("Starting publishing threads...")
+    thread = lambda f, args: threading.Thread(target=f, daemon=True, args=args).start()
     for _ in range(args.threads):
-        threading.Thread(target=send_message, daemon=True, args=(auth, "telemetry", args.telemetry_freq)).start()
-        threading.Thread(target=send_message, daemon=True, args=(auth, "event", args.event_freq)).start()
+        thread(send, ("telemetry", args.telemetry_freq))
+        thread(send, ("event", args.event_freq))
 
+    # Receive messages from application
     def on_message(mqttc, obj, msg):
         payload = str(msg.payload)
         print(payload)
 
-    # Receive messages from application
     print("Subscribing to commands...")
     subscribe.callback(
         on_message,
         "command///req/#",
         hostname=args.mqtt_host, port=args.mqtt_port,
-        qos=1, auth=auth)
-
+        qos=1, auth=auth
+    )
     while True:
         time.sleep(1)
