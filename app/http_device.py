@@ -2,11 +2,8 @@ import time
 import argparse
 import registry
 import threading
-import http.client
-import json
-
-
-import paho.mqtt.subscribe as subscribe
+import requests
+from requests.auth import HTTPBasicAuth
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MQTT device simulator.")
@@ -19,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--http-host",
                         default="localhost",
                         help="HTTP adapter hostname.")
-    parser.add_argument("--htpp-port",
+    parser.add_argument("--http-port",
                         default=32000, type=int,
                         help="HTPP adapter port.")
     parser.add_argument("-t", "--tenant",
@@ -41,53 +38,32 @@ if __name__ == "__main__":
                         default=1, type=int,
                         help="How many threads should be spawned for each message type.")
 
-    # Create device in case it doesn't exist
+    # Get data from arguments.
     args = parser.parse_args()
     factory = registry.mk_api_factory(args.registry_host, args.registry_port)
+    auth = HTTPBasicAuth("%s@%s" % (args.device, args.tenant), args.passwd)
+    host = "%s:%s" % (args.http_host, args.http_port)
 
+    # Create device in case it doesn't exist
     print("Creating device %s@%s..." % (args.device, args.tenant))
     factory(registry.mk_tenant)(args.tenant)
     factory(registry.mk_device)(args.tenant, args.device)
     factory(registry.set_passwd)(args.tenant, args.device, args.device, args.passwd)
 
-
-    def send_message(auth, ty, sleep):
+    def send(ty, sleep, auth=auth, host=host):
+        addr = "http://%s/%s" % (host, ty)
         counter = 0
         while True:
             counter += 1
-            payload = "[%d] %s %d" % (threading.get_ident(), ty, counter)
-            time.sleep(sleep)
-
-            connection = http.client.HTTPSConnection(args.http_host, args.htpp_port)
-
-            headers = {'Content-type': 'application/json'}
-
-            foo = {'text': payload}
-            json_data = json.dumps(foo)
-
-            connection.request('POST', '/post', json_data, headers)
-
-            response = connection.getresponse()
-            print(response.read().decode())
-
+            payload = {ty: counter}
+            res = requests.post(addr, data=payload, auth=auth)
             print("Published '%s'" % payload)
 
-
-    auth = {
-        "username": "%s@%s" % (args.device, args.tenant),
-        "password": args.passwd
-    }
-
     print("Starting publishing threads...")
+    thread = lambda f, args=[]: threading.Thread(target=f, daemon=True, args=args).start()
     for _ in range(args.threads):
-        threading.Thread(target=send_message, daemon=True, args=(auth, "telemetry", args.telemetry_freq)).start()
-        threading.Thread(target=send_message, daemon=True, args=(auth, "event", args.event_freq)).start()
-
-
-
-
-    # Receive messages from application
-
+        thread(send, ["telemetry", args.telemetry_freq])
+        thread(send, ["event", args.event_freq])
 
     while True:
         time.sleep(1)
