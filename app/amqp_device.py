@@ -83,6 +83,7 @@ if __name__ == "__main__":
         receiver = mk_conn().create_receiver("command")
         while True:
             msg = receiver.receive(timeout=None)
+            # No need to sleep. reveiver.accepts() is blocking.
             receiver.accept()
             payload = msg.body
             print(payload)

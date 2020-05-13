@@ -56,11 +56,26 @@ if __name__ == "__main__":
         while True:
             counter += 1
             payload = {ty: counter}
-            res = requests.post(addr, data=payload, auth=auth)
-            print("Published '%s'" % payload)
+            try:
+                time.sleep(sleep)
+                requests.post(addr, data=payload, auth=auth)
+                print("Published '%s'" % payload)
+            except Exception as e:
+                print(e)
+
+    def recv(ttd=20, auth=auth, host=host):
+        addr = "http://%s/event?hono-ttd=%d" % (host, ttd)
+        data = {"temp": 5}
+        while True:
+            res = requests.post(addr, data=data, auth=auth, timeout=ttd*2)
+            if res.status_code == 200:
+                print("Command '%s'" % res.text)
+            else:
+                print(res)
 
     print("Starting publishing threads...")
     thread = lambda f, args=[]: threading.Thread(target=f, daemon=True, args=args).start()
+    thread(recv, [])
     for _ in range(args.threads):
         thread(send, ["telemetry", args.telemetry_freq])
         thread(send, ["event", args.event_freq])
